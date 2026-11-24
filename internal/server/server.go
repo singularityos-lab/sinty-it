@@ -125,9 +125,7 @@ type adminHandler func(w http.ResponseWriter, r *http.Request, who string)
 func (s *Server) admin(h adminHandler) http.HandlerFunc {
 	return s.Web.API(func(w http.ResponseWriter, r *http.Request, id rp.Identity) {
 		if id.Claims.Level < s.cfg.MinLevel {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(map[string]any{"error": "stronger", "have": id.Claims.Level, "need": s.cfg.MinLevel})
+			rp.StepUp(w, id.Claims.Level, s.cfg.MinLevel)
 			return
 		}
 		h(w, r, id.User)

@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/godbus/dbus/v5 v5.2.2
-	github.com/singularityos-lab/sinty-identity v0.0.0-20261124210109-f719c5b6b851
+	github.com/singularityos-lab/sinty-identity v0.0.0-20261124211136-2dae46db175e
 )
 
 require golang.org/x/sys v0.27.0 // indirect

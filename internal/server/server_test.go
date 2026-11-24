@@ -122,6 +122,13 @@ func TestFleet(t *testing.T) {
 	if c := l.call("alice:2", "GET", "/api/v1/devices", nil, nil); c != http.StatusForbidden {
 		t.Fatalf("an administrator without a device sign-in got %d", c)
 	}
+	weak, _ := http.NewRequest("GET", l.srv.URL+"/api/v1/devices", nil)
+	weak.Header.Set("Authorization", "Bearer alice:2")
+	if resp, err := http.DefaultClient.Do(weak); err != nil || !strings.Contains(resp.Header.Get("WWW-Authenticate"), `acr_values="sinty:3"`) {
+		t.Fatal("a weak sign-in was not told which level to reach")
+	} else {
+		resp.Body.Close()
+	}
 	var tok struct{ Token string }
 	if c := l.call("alice:3", "POST", "/api/v1/tokens", map[string]any{"group": "office", "uses": 2, "hours": 1}, &tok); c != http.StatusCreated || !strings.HasPrefix(tok.Token, "sit_") {
 		t.Fatalf("token: %d %q", c, tok.Token)
