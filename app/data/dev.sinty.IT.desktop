@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Sinty IT
+Comment=Manage your organization's devices
+Exec=sinty-it-app
+Icon=dev.sinty.IT
+Terminal=false
+Type=Application
+Categories=System;Settings;
+Keywords=devices;fleet;administration;erase;lock;organization;
+StartupWMClass=dev.sinty.IT
+DBusActivatable=true

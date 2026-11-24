@@ -91,6 +91,21 @@ sinty-it audit
 Output is JSON. Exit status: 0 done, 1 failed, 2 wrong usage, 3 signed out,
 4 not found, 5 refused.
 
+## Desktop app
+
+`app/` holds Sinty IT for Sinty OS, built with
+[libsingularity](https://github.com/singularityos-lab/libsingularity). It uses
+the organization account added in Settings, Online Accounts, which must list
+the IT service in the identity provider's discovery document
+(`sinty-identity serve -service it=https://it.example.org`) and be accepted by
+the server (`-accept desktop`). When the server asks for a device
+confirmation, the app opens the sign-in again at that level.
+
+```sh
+meson setup _build app
+ninja -C _build
+```
+
 ## Building
 
 ```sh

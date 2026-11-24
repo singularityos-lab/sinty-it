@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=dev.sinty.IT
+Exec=@bindir@/sinty-it-app --gapplication-service
