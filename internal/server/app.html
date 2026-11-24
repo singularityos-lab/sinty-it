@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sinty IT</title>
+<link rel="stylesheet" href="/ui/src/sintyui.css">
+<script src="/ui/src/sintyui.js"></script>
+<script src="/app.js" defer></script>
+<style>
+  body { margin: 0; min-height: 100vh; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 18px; }
+  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 20px; font-weight: 700; margin: 0; flex: 1; }
+  nav { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+  nav button { font: inherit; background: none; border: 0; color: var(--sinty-accent-color); padding: 2px 4px; cursor: default; }
+  nav button[aria-current] { color: inherit; font-weight: 700; }
+  .issue { color: var(--sinty-warning-color, #c97a00); display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+  .good { font-size: 12px; opacity: .7; }
+  .empty { padding: 24px 12px; text-align: center; opacity: .7; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .mono { font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; user-select: all; }
+  #message { font-size: 12px; color: var(--sinty-error-color); margin: 0; }
+  #message:empty { display: none; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body class="sinty-surface">
+<main>
+  <header>
+    <h1 id="title">Devices</h1>
+    <sinty-button id="add" variant="suggested" pill>Add Device</sinty-button>
+  </header>
+  <nav aria-label="Sections">
+    <button id="to-devices" aria-current="page">Devices</button>
+    <button id="to-activity">Activity</button>
+  </nav>
+  <p id="message" role="alert"></p>
+  <section id="devices-view">
+    <sinty-group id="waiting" heading="Waiting for a Second Administrator" hidden></sinty-group>
+    <sinty-group id="devices" heading="Enrolled"></sinty-group>
+  </section>
+  <section id="device-view" hidden>
+    <sinty-group id="facts" heading="Status"></sinty-group>
+    <sinty-group heading="Actions">
+      <div class="actions" style="padding: 12px">
+        <sinty-button data-kind="lock" pill>Lock Screens</sinty-button>
+        <sinty-button data-kind="logout" pill>Sign Everyone Out</sinty-button>
+        <sinty-button data-kind="update" pill>Install Updates</sinty-button>
+        <sinty-button data-kind="reboot" pill>Restart</sinty-button>
+        <sinty-button id="wipe" variant="destructive" pill>Erase…</sinty-button>
+        <sinty-button id="retire" variant="flat" pill>Remove from Management</sinty-button>
+      </div>
+    </sinty-group>
+    <sinty-group id="history" heading="Commands"></sinty-group>
+  </section>
+  <section id="activity-view" hidden>
+    <sinty-group id="activity" heading="Signed Activity Log"></sinty-group>
+  </section>
+</main>
+<sinty-dialog id="add-dialog" heading="Add a Device">
+  <sinty-entry id="add-group" label="Group" placeholder="default"></sinty-entry>
+  <sinty-entry id="add-uses" label="How many devices" value="1" type="number"></sinty-entry>
+  <sinty-button slot="actions" id="add-cancel" pill>Cancel</sinty-button>
+  <sinty-button slot="actions" id="add-create" variant="suggested" pill>Create Code</sinty-button>
+</sinty-dialog>
+<sinty-dialog id="code-dialog" heading="Enrollment Code">
+  <p>On the device, run this as an administrator. The code works once per device and expires in 24 hours.</p>
+  <p class="mono" id="code-command"></p>
+  <sinty-button slot="actions" id="code-done" variant="suggested" pill>Done</sinty-button>
+</sinty-dialog>
+<sinty-dialog id="wipe-dialog" heading="Erase this device?">
+  <p>All data on <b id="wipe-name"></b> becomes unreadable for good and the device restarts. Another administrator must approve before it runs.</p>
+  <sinty-button slot="actions" id="wipe-cancel" pill>Cancel</sinty-button>
+  <sinty-button slot="actions" id="wipe-confirm" variant="destructive" pill>Ask to Erase</sinty-button>
+</sinty-dialog>
+</body>
+</html>

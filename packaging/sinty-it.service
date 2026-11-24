@@ -1,0 +1,28 @@
+[Unit]
+Description=Sinty IT device management
+Documentation=https://github.com/singularityos-lab/sinty-it
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/default/sinty-it
+LoadCredential=client.secret:/etc/sinty-it/client.secret
+LoadCredential=tls.crt:/etc/sinty-it/tls.crt
+LoadCredential=tls.key:/etc/sinty-it/tls.key
+ExecStart=/usr/bin/sinty-it serve -issuer ${ISSUER} -public ${PUBLIC} -client ${CLIENT} -cli-client ${CLI_CLIENT} -admins ${ADMINS} -listen ${LISTEN} -secret-file %d/client.secret -state /var/lib/sinty-it -cert %d/tls.crt -key %d/tls.key
+StateDirectory=sinty-it
+StateDirectoryMode=0700
+DynamicUser=yes
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

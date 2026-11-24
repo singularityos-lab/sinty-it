@@ -1,0 +1,17 @@
+[Unit]
+Description=Sinty IT agent
+Documentation=https://github.com/singularityos-lab/sinty-it
+After=network-online.target dbus.service
+Wants=network-online.target
+ConditionPathExists=/var/lib/sinty-it-agent/identity.json
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sinty-it agent run -dir /var/lib/sinty-it-agent
+StateDirectory=sinty-it-agent
+StateDirectoryMode=0700
+Restart=on-failure
+RestartSec=30s
+
+[Install]
+WantedBy=multi-user.target
