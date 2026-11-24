@@ -12,7 +12,7 @@ agent.
 
 ```sh
 sinty-it serve -issuer https://id.example.org -client it -secret-file it.secret \
-  -cli-client it-cli -public https://it.example.org -admins alice,bob
+  -accept it-cli,desktop -public https://it.example.org -admins alice,bob
 ```
 
 The web console is served at the public address. It needs the

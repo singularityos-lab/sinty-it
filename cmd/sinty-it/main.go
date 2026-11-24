@@ -29,7 +29,7 @@ const app = "sinty-it"
 
 func usage() {
 	fmt.Fprint(os.Stderr, `usage:
-  sinty-it serve -issuer URL -client ID -secret-file FILE -public URL -admins USER[,USER] [-cli-client ID] [-state DIR] [-min-level N] [-listen ADDR] [-ui DIR] [-cert FILE -key FILE]
+  sinty-it serve -issuer URL -client ID -secret-file FILE -public URL -admins USER[,USER] [-accept ID[,ID]] [-state DIR] [-min-level N] [-listen ADDR] [-ui DIR] [-cert FILE -key FILE]
   sinty-it verify-audit [-state DIR]
   sinty-it login -server URL -issuer URL [-client ID]
   sinty-it logout
@@ -117,7 +117,7 @@ func serve(args []string) error {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	issuer := fs.String("issuer", "", "identity provider")
 	client := fs.String("client", "it", "client id at the identity provider")
-	cliClient := fs.String("cli-client", "", "client id of the command line, whose tokens are accepted too")
+	accept := fs.String("accept", "", "other clients whose access tokens are accepted, comma separated: the command line, the desktop")
 	secretFile := fs.String("secret-file", "", "file holding the client secret")
 	public := fs.String("public", "", "public address of this service")
 	dir := fs.String("state", "/var/lib/sinty-it", "state directory")
@@ -161,8 +161,10 @@ func serve(args []string) error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	cfg := rp.Config{Issuer: *issuer, ClientID: *client, ClientSecret: secret, RedirectURL: strings.TrimRight(*public, "/") + "/cb", MinLevel: *minLevel}
-	if *cliClient != "" {
-		cfg.Audiences = []string{*cliClient}
+	for _, id := range strings.Split(*accept, ",") {
+		if id = strings.TrimSpace(id); id != "" {
+			cfg.Audiences = append(cfg.Audiences, id)
+		}
 	}
 	auth, err := rp.Connect(ctx, cfg, func(f string, a ...any) { log.Printf(f, a...) })
 	if err != nil {

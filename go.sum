@@ -1,6 +1,6 @@
 github.com/godbus/dbus/v5 v5.2.2 h1:TUR3TgtSVDmjiXOgAAyaZbYmIeP3DPkld3jgKGV8mXQ=
 github.com/godbus/dbus/v5 v5.2.2/go.mod h1:3AAv2+hPq5rdnr5txxxRwiGjPXamgoIHgz9FPBfOp3c=
-github.com/singularityos-lab/sinty-identity v0.0.0-20261124202443-c81e43ab3d76 h1:hY9B/5BkXstoe53jXe8ymaXJ6YdrpoXBy5qmdPBU4ZY=
-github.com/singularityos-lab/sinty-identity v0.0.0-20261124202443-c81e43ab3d76/go.mod h1:4J750eq+wpnvsBR7XeCGByf1bLx0ETc/Rfu4kGHe6ac=
+github.com/singularityos-lab/sinty-identity v0.0.0-20261124204335-113955f1555e h1:5m1PTwF2zENZrrqcY8HIOE/cqxeGj1VOf8gUOvNg5ms=
+github.com/singularityos-lab/sinty-identity v0.0.0-20261124204335-113955f1555e/go.mod h1:4J750eq+wpnvsBR7XeCGByf1bLx0ETc/Rfu4kGHe6ac=
 golang.org/x/sys v0.27.0 h1:wBqf8DvsY9Y/2P8gAfPDEYNuS30J4lPHJxXSb/nJZ+s=
 golang.org/x/sys v0.27.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
