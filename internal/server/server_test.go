@@ -116,7 +116,7 @@ func TestFleet(t *testing.T) {
 	if c := l.call("", "GET", "/api/v1/devices", nil, nil); c != http.StatusBadRequest {
 		t.Fatalf("an anonymous call got %d", c)
 	}
-	if c := l.call("mallory:3", "GET", "/api/v1/devices", nil, nil); c != http.StatusUnauthorized {
+	if c := l.call("mallory:3", "GET", "/api/v1/devices", nil, nil); c != http.StatusForbidden {
 		t.Fatalf("someone who is not an administrator got %d", c)
 	}
 	if c := l.call("alice:2", "GET", "/api/v1/devices", nil, nil); c != http.StatusForbidden {
