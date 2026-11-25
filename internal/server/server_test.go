@@ -249,6 +249,29 @@ func TestFleet(t *testing.T) {
 	if _, err := pc1.Checkin(ctx); !errors.Is(err, agent.ErrRefused) {
 		t.Fatal("a retired device still checked in")
 	}
+	var pending state.Command
+	l.call("bob:3", "POST", "/api/v1/devices/"+id2.Device+"/commands", map[string]any{"kind": "lock"}, &pending)
+	if c := l.raw(id2.Device, stranger, wire.Checkin{Device: id2.Device, Clock: time.Now().UnixMilli() + 5, Leaving: true}); c != http.StatusUnauthorized {
+		t.Fatalf("a leave signed by another key got %d", c)
+	}
+	if err := pc2.Leave(ctx); err != nil {
+		t.Fatalf("leave: %v", err)
+	}
+	if _, err := pc2.Enrolled(); !errors.Is(err, agent.ErrNotEnrolled) {
+		t.Fatal("the device kept its identity after leaving")
+	}
+	l.call("alice:3", "GET", "/api/v1/devices", nil, &list)
+	if len(list.Devices) != 0 {
+		t.Fatalf("a device that left is still listed: %+v", list.Devices)
+	}
+	l.s.Store.View(func(st *state.State) {
+		if !st.Devices[id2.Device].Retired || st.Commands[pending.ID].State != state.Canceled {
+			t.Fatal("leaving did not retire the device and cancel its commands")
+		}
+	})
+	if err := pc2.Leave(ctx); err != nil {
+		t.Fatal("leaving twice failed")
+	}
 	var log struct {
 		Entries  []audit.Entry
 		Verified bool
@@ -259,7 +282,7 @@ func TestFleet(t *testing.T) {
 		actions = append(actions, e.Actor+" "+e.Action)
 	}
 	joined := strings.Join(actions, "|")
-	for _, want := range []string{"alice token.create", "alice policy.set", "bob command.create", "alice command.create", "carol command.approve", "alice device.retire", "command.done", "command.failed", "device.enroll"} {
+	for _, want := range []string{"alice token.create", "alice policy.set", "bob command.create", "alice command.create", "carol command.approve", "alice device.retire", "device:" + id2.Device + " device.leave", "command.done", "command.failed", "device.enroll"} {
 		if !strings.Contains(joined, want) {
 			t.Fatalf("the audit log misses %q: %s", want, joined)
 		}

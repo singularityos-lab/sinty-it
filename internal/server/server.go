@@ -229,6 +229,10 @@ func (s *Server) checkin(w http.ResponseWriter, r *http.Request) {
 			return errClock
 		}
 		d.Clock, d.Seen, d.Facts = in.Clock, now, in.Facts
+		if in.Leaving {
+			retireDevice(st, d, now)
+			return nil
+		}
 		for _, res := range in.Results {
 			c := st.Commands[res.ID]
 			if c == nil || c.Device != d.ID || c.State != state.Sent {
@@ -294,6 +298,9 @@ func (s *Server) checkin(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, c := range finished {
 		s.record("device:"+c.Device, "command."+c.State, c.Device, map[string]string{"command": c.ID, "kind": c.Kind})
+	}
+	if in.Leaving {
+		s.record("device:"+in.Device, "device.leave", in.Device, nil)
 	}
 	rp.Reply(w, out)
 }
@@ -380,6 +387,15 @@ func (s *Server) device(w http.ResponseWriter, r *http.Request, who string) {
 	rp.Reply(w, map[string]any{"device": v, "commands": cmds})
 }
 
+func retireDevice(st *state.State, d *state.Device, now time.Time) {
+	d.Retired = true
+	for _, c := range st.Commands {
+		if c.Device == d.ID && (c.State == state.Queued || c.State == state.Sent || c.State == state.Waiting) {
+			c.State, c.Finished = state.Canceled, now
+		}
+	}
+}
+
 func (s *Server) retire(w http.ResponseWriter, r *http.Request, who string) {
 	id := r.PathValue("id")
 	err := s.Store.Update(func(st *state.State) error {
@@ -387,12 +403,7 @@ func (s *Server) retire(w http.ResponseWriter, r *http.Request, who string) {
 		if d == nil || d.Retired {
 			return errNotFound
 		}
-		d.Retired = true
-		for _, c := range st.Commands {
-			if c.Device == id && (c.State == state.Queued || c.State == state.Sent || c.State == state.Waiting) {
-				c.State, c.Finished = state.Canceled, s.Now()
-			}
-		}
+		retireDevice(st, d, s.Now())
 		return nil
 	})
 	if s.fail(w, err) {

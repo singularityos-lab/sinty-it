@@ -45,6 +45,7 @@ type Checkin struct {
 	Clock   int64    `json:"clock"`
 	Facts   Facts    `json:"facts"`
 	Results []Result `json:"results,omitempty"`
+	Leaving bool     `json:"leaving,omitempty"`
 }
 
 type Orders struct {

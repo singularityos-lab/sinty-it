@@ -27,6 +27,7 @@ var (
 	ErrExpired     = errors.New("agent: the command has expired")
 	ErrUnknown     = errors.New("agent: this device does not run that command")
 	ErrNotEnrolled = errors.New("agent: this device is not enrolled")
+	ErrUnannounced = errors.New("agent: the server was not told the device left")
 	ErrRefused     = errors.New("agent: the server refused the device")
 )
 
@@ -122,6 +123,47 @@ func (a *Agent) Enrolled() (Identity, error) {
 		return Identity{}, err
 	}
 	return *a.id, nil
+}
+
+// Leave tells the server, with a signed check-in, that the device is leaving,
+// then forgets the identity. The identity is forgotten even when the server
+// cannot be reached; the error then says the server was not told.
+func (a *Agent) Leave(ctx context.Context) error {
+	a.mu.Lock()
+	err := a.load()
+	if errors.Is(err, ErrNotEnrolled) {
+		a.mu.Unlock()
+		return nil
+	}
+	if err == nil {
+		clock := max(a.now().UnixMilli(), a.mem.Clock+1)
+		body, _ := json.Marshal(wire.Checkin{Device: a.id.Device, Clock: clock, Leaving: true})
+		sig := ed25519.Sign(a.id.Key, wire.CheckinMessage(body))
+		var out wire.Orders
+		_, err = post(ctx, a.client(), a.id.Server+"/agent/v1/checkin", body, map[string]string{wire.SignatureHeader: base64.StdEncoding.EncodeToString(sig)}, &out)
+	}
+	a.mu.Unlock()
+	if ferr := a.Forget(); ferr != nil {
+		return ferr
+	}
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrUnannounced, err)
+	}
+	return nil
+}
+
+// Forget removes the device identity, so the device is no longer managed and
+// can be enrolled again.
+func (a *Agent) Forget() error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	for _, f := range []string{"identity.json", "memory.json"} {
+		if err := os.Remove(filepath.Join(a.Dir, f)); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	}
+	a.id, a.mem = nil, memory{}
+	return nil
 }
 
 func post(ctx context.Context, c *http.Client, url string, body []byte, header map[string]string, out any) (int, error) {

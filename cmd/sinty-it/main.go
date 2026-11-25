@@ -11,15 +11,19 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/godbus/dbus/v5"
+	"github.com/singularityos-lab/libsingularity/src/system/core/go/polkit"
 	"github.com/singularityos-lab/sinty-identity/rp"
 	"github.com/singularityos-lab/sinty-it/agent"
 	"github.com/singularityos-lab/sinty-it/audit"
+	"github.com/singularityos-lab/sinty-it/internal/agentbus"
 	"github.com/singularityos-lab/sinty-it/internal/server"
 	"github.com/singularityos-lab/sinty-it/internal/state"
 	"github.com/singularityos-lab/sinty-it/platform"
@@ -46,6 +50,7 @@ func usage() {
   sinty-it agent enroll -server URL -token TOKEN [-name NAME] [-dir DIR] [-config FILE]
   sinty-it agent run [-every DURATION] [-dir DIR] [-config FILE]
   sinty-it agent status [-dir DIR]
+  sinty-it agent bus [-dir DIR] [-config FILE]
 Commands: lock, logout, reboot, update, sync-policy, wipe (a wipe waits for a second administrator).
 Exit status: 0 done, 1 failed, 2 wrong usage, 3 signed out, 4 not found, 5 refused.
 `)
@@ -366,6 +371,8 @@ func agentCmd(args []string) error {
 			return exitError{3, "this device is not enrolled: run sinty-it agent enroll"}
 		}
 		return err
+	case "bus":
+		return agentBus(ctx, a)
 	case "status":
 		id, err := a.Enrolled()
 		if errors.Is(err, agent.ErrNotEnrolled) {
@@ -377,5 +384,29 @@ func agentCmd(args []string) error {
 		return json.NewEncoder(os.Stdout).Encode(map[string]string{"server": id.Server, "device": id.Device, "group": id.Group})
 	}
 	usage()
+	return nil
+}
+
+func agentBus(ctx context.Context, a *agent.Agent) error {
+	conn, err := dbus.ConnectSystemBus()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	auth := &polkit.Authorizer{Conn: conn}
+	unit := func(verb string) func(context.Context) error {
+		return func(ctx context.Context) error {
+			out, err := exec.CommandContext(ctx, "systemctl", verb, "sinty-it-agent.service").CombinedOutput()
+			if err != nil {
+				return fmt.Errorf("systemctl %s: %v: %s", verb, err, strings.TrimSpace(string(out)))
+			}
+			return nil
+		}
+	}
+	svc := &agentbus.Service{Agent: a, Check: auth.Check, Start: unit("start"), Stop: unit("stop"), Logf: log.Printf}
+	if err := agentbus.Export(conn, svc); err != nil {
+		return err
+	}
+	<-ctx.Done()
 	return nil
 }

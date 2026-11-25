@@ -62,3 +62,19 @@ func TestRun(t *testing.T) {
 		t.Fatalf("handler ran %d times", ran)
 	}
 }
+
+func TestLeaveWithoutTheServer(t *testing.T) {
+	_, key, _ := ed25519.GenerateKey(nil)
+	pub, _, _ := ed25519.GenerateKey(nil)
+	dir := t.TempDir()
+	writeFile(dir+"/identity.json", Identity{Server: "https://127.0.0.1:1", Device: "pc1", Key: key, ServerKey: pub})
+	a := &Agent{Dir: dir}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := a.Leave(ctx); !errors.Is(err, ErrUnannounced) {
+		t.Fatalf("an unreachable server: %v", err)
+	}
+	if _, err := a.Enrolled(); !errors.Is(err, ErrNotEnrolled) {
+		t.Fatal("the identity survived leaving")
+	}
+}

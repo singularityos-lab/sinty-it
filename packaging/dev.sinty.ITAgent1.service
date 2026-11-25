@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=dev.sinty.ITAgent1
+Exec=/usr/bin/sinty-it agent bus
+User=root

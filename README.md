@@ -59,7 +59,14 @@ systemctl enable --now sinty-it-agent
 ```
 
 Enrollment codes are created in the console or with `sinty-it token`, and
-work for a set number of devices within a set time. The agent keeps an
+work for a set number of devices within a set time.
+
+On Sinty OS a device is enrolled from Settings, Organization. Settings talks
+to `sinty-it agent bus`, started on demand on the system bus as
+`dev.sinty.ITAgent1`, which asks polkit (`dev.sinty.it.enroll`,
+`dev.sinty.it.leave`) for an administrator before it enrolls the device,
+starts the agent, or takes the device out of management. The server field
+also takes an enrollment link, `https://it.example.org/enroll?token=sit_...`. The agent keeps an
 Ed25519 key in `/var/lib/sinty-it-agent` and signs every check-in together
 with a clock that must move forward, so a recorded check-in cannot be
 replayed. It reports:
