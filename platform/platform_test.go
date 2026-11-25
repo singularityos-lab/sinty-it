@@ -181,3 +181,45 @@ func TestPlatform(t *testing.T) {
 		t.Fatalf("policy file: %s", raw)
 	}
 }
+
+type countingListener struct {
+	net.Listener
+	mu       sync.Mutex
+	accepted int
+}
+
+func (l *countingListener) Accept() (net.Conn, error) {
+	c, err := l.Listener.Accept()
+	if err == nil {
+		l.mu.Lock()
+		l.accepted++
+		l.mu.Unlock()
+	}
+	return c, err
+}
+
+func TestUpdatedCallsReuseOneConnection(t *testing.T) {
+	sock := filepath.Join(t.TempDir(), "updated.sock")
+	ln, err := net.Listen("unix", sock)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cl := &countingListener{Listener: ln}
+	srv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"state":"idle"}`))
+	})}
+	go srv.Serve(cl)
+	defer srv.Close()
+	p := New(Paths{UpdateSock: sock})
+	for i := 0; i < 50; i++ {
+		var st updateStatus
+		if err := p.updated(context.Background(), "GET", "/status", &st); err != nil || st.State != "idle" {
+			t.Fatalf("call %d: %v %+v", i, err, st)
+		}
+	}
+	cl.mu.Lock()
+	defer cl.mu.Unlock()
+	if cl.accepted > 1 {
+		t.Fatalf("50 calls opened %d connections to sinty-updated", cl.accepted)
+	}
+}

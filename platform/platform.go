@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -63,6 +64,9 @@ type Platform struct {
 	Paths Paths
 	Bus   func() (*dbus.Conn, error)
 	Run   func(ctx context.Context, name string, args ...string) (string, error)
+
+	clientOnce sync.Once
+	client     *http.Client
 }
 
 func New(p Paths) *Platform {
@@ -101,11 +105,24 @@ func firstLine(path string) string {
 	return strings.TrimSpace(strings.TrimRight(strings.SplitN(string(raw), "\n", 2)[0], "\x00"))
 }
 
+// updateClient is shared by every call so the connection to sinty-updated is
+// reused instead of a new one being left open each time.
+func (p *Platform) updateClient() *http.Client {
+	p.clientOnce.Do(func() {
+		p.client = &http.Client{Timeout: 3 * time.Minute, Transport: &http.Transport{
+			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+				var d net.Dialer
+				return d.DialContext(ctx, "unix", p.Paths.UpdateSock)
+			},
+			MaxIdleConns:    1,
+			IdleConnTimeout: time.Minute,
+		}}
+	})
+	return p.client
+}
+
 func (p *Platform) updated(ctx context.Context, method, path string, out any) error {
-	c := &http.Client{Timeout: 3 * time.Minute, Transport: &http.Transport{DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
-		var d net.Dialer
-		return d.DialContext(ctx, "unix", p.Paths.UpdateSock)
-	}}}
+	c := p.updateClient()
 	req, err := http.NewRequestWithContext(ctx, method, "http://localhost"+path, nil)
 	if err != nil {
 		return err
