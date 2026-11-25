@@ -123,6 +123,7 @@ namespace Sinty.It {
 
         private Box page(string name) {
             var box = new PreferencesPage();
+            apply_bubble_inset(box);
             var scroll = new ScrolledWindow();
             scroll.hscrollbar_policy = PolicyType.NEVER;
             scroll.child = box;
@@ -209,7 +210,7 @@ namespace Sinty.It {
                 var empty = new StatusPage();
                 empty.icon_name = "computer-symbolic";
                 empty.title = _("No Devices Yet");
-                empty.description = _("Create an enrollment code with sinty-it token, then run sinty-it enroll on each device.");
+                empty.description = _("Create an enrollment code in the Sinty IT console, then enroll each device from Settings, About, Organization.");
                 devices_box.append(empty);
                 stack.visible_child_name = "devices";
                 return;
