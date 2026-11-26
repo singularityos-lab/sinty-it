@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="sinty-full">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,71 +8,160 @@
 <script src="/ui/src/sintyui.js"></script>
 <script src="/app.js" defer></script>
 <style>
-  body { margin: 0; min-height: 100vh; }
-  main { max-width: 760px; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 18px; }
-  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  h1 { font-size: 20px; font-weight: 700; margin: 0; flex: 1; }
-  nav { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; font-size: 13px; }
-  nav button { font: inherit; background: none; border: 0; color: var(--sinty-accent-color); padding: 2px 4px; cursor: default; }
-  nav button[aria-current] { color: inherit; font-weight: 700; }
-  .issue { color: var(--sinty-warning-color, #c97a00); display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
-  .good { font-size: 12px; opacity: .7; }
-  .empty { padding: 24px 12px; text-align: center; opacity: .7; }
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .mono { font-family: ui-monospace, monospace; font-size: 12px; word-break: break-all; user-select: all; }
-  #message { font-size: 12px; color: var(--sinty-error-color); margin: 0; }
-  #message:empty { display: none; }
   [hidden] { display: none !important; }
+  .account { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 6px 8px; border-radius: 8px; outline: none; }
+  .account:hover, .account:focus-visible { background-color: var(--sinty-card-hover-bg); }
+  .account b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  sinty-app { --sinty-sidebar-width: 200px; }
+  .selcount { font-size: 12px; font-weight: 600; padding: 0 6px; white-space: nowrap; }
+  .page { display: grid; gap: 18px; }
+  .note { margin: 0; font-size: 12px; opacity: 0.65; line-height: 1.45; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .stat { font: inherit; color: inherit; text-align: start; display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background-color: var(--sinty-card-bg); border: 1px solid var(--sinty-border-color); cursor: default; }
+  .stat:hover { background-color: var(--sinty-card-hover-bg); }
+  .stat:focus-visible { outline: 2px solid var(--sinty-focus-ring-color); outline-offset: 1px; }
+  .stat b { font-size: 24px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12px; opacity: 0.7; }
+  .stat.warn b { color: var(--sinty-warning-color); }
+  .hero { display: flex; align-items: center; gap: 16px; }
+  .hero sinty-icon { --sinty-icon-size: 64px; flex: none; }
+  .hero h2 { margin: 0; font-size: 20px; font-weight: 700; }
+  .hero p { margin: 2px 0 0; font-size: 12px; opacity: 0.7; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 2px 8px 2px 6px; border-radius: 99px; white-space: nowrap; }
+  .pill sinty-icon { --sinty-icon-size: 12px; }
+  .pill.ok { background-color: color-mix(in srgb, var(--sinty-success-color) 16%, transparent); color: var(--sinty-success-color); }
+  .pill.warn { background-color: color-mix(in srgb, var(--sinty-warning-color) 16%, transparent); color: var(--sinty-warning-color); }
+  .pill.off { background-color: color-mix(in srgb, var(--sinty-text-color) 8%, transparent); opacity: 0.8; }
+  .pill.bad { background-color: color-mix(in srgb, var(--sinty-error-color) 16%, transparent); color: var(--sinty-error-color); }
+  .value { font-size: 12px; opacity: 0.75; text-align: end; max-width: 60%; overflow-wrap: anywhere; }
+  .mono { font-family: ui-monospace, monospace; font-size: 11.5px; }
+  sinty-row > sinty-icon[slot="prefix"] { --sinty-icon-size: 16px; opacity: 0.8; }
+  sinty-row > sinty-icon[slot="prefix"][color] { --sinty-icon-size: 32px; opacity: 1; }
+  .day { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.55; margin: 6px 12px -10px; }
+  .namecell { overflow: hidden; }
+  .namecell > div { flex: 1; min-width: 0; display: grid; }
+  .namecell sinty-icon { opacity: 0.8; }
+  .sinty-data-view .sub { display: none; font-size: 11px; opacity: 0.6; }
+  .setting { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 30px; gap: 8px; align-items: center; padding: 6px 12px; }
+  .setting sinty-entry { width: 100%; }
+  .setting button { font: inherit; color: inherit; background: none; border: 0; width: 28px; height: 28px; border-radius: 99px; display: grid; place-items: center; cursor: default; }
+  .setting button:hover { background-color: var(--sinty-card-hover-bg); }
+  .buttons { display: flex; gap: 8px; flex-wrap: wrap; padding: 10px 12px; }
+  .field { display: grid; gap: 10px; min-width: min(360px, 78vw); }
+  .field sinty-entry { width: 100%; }
+  .field .cap { font-size: 12px; font-weight: 600; margin: 4px 0 -4px; }
+  .field small:empty { display: none; }
+  .field small { color: var(--sinty-error-color); min-height: 14px; }
+  .dtext { display: block; max-width: 440px; line-height: 1.45; opacity: 0.8; margin: 0 0 6px; }
+  .codebox { display: grid; gap: 6px; margin: 8px 0; padding: 10px 12px; border-radius: 10px; background-color: var(--sinty-card-bg); border: 1px solid var(--sinty-border-color); max-width: 460px; }
+  .codebox code { font-family: ui-monospace, monospace; font-size: 11.5px; overflow-wrap: anywhere; user-select: all; }
+  .choices { margin: 2px 0 6px; }
+  @media (max-width: 640px) {
+    .sinty-data-view { --sinty-columns: minmax(0, 1fr) 90px !important; }
+    .sinty-data-view .wide { display: none !important; }
+    .sinty-data-view .sub { display: block; }
+    sinty-search { --sinty-search-width: 90px; }
+    .value { max-width: 50%; }
+  }
 </style>
 </head>
 <body class="sinty-surface">
-<main>
-  <header>
-    <h1 id="title">Devices</h1>
-    <sinty-button id="add" variant="suggested" pill>Add Device</sinty-button>
-  </header>
-  <nav aria-label="Sections">
-    <button id="to-devices" aria-current="page">Devices</button>
-    <button id="to-activity">Activity</button>
-  </nav>
-  <p id="message" role="alert"></p>
-  <section id="devices-view">
-    <sinty-group id="waiting" heading="Waiting for a Second Administrator" hidden></sinty-group>
-    <sinty-group id="devices" heading="Enrolled"></sinty-group>
-  </section>
-  <section id="device-view" hidden>
-    <sinty-group id="facts" heading="Status"></sinty-group>
-    <sinty-group heading="Actions">
-      <div class="actions" style="padding: 12px">
-        <sinty-button data-kind="lock" pill>Lock Screens</sinty-button>
-        <sinty-button data-kind="logout" pill>Sign Everyone Out</sinty-button>
-        <sinty-button data-kind="update" pill>Install Updates</sinty-button>
-        <sinty-button data-kind="reboot" pill>Restart</sinty-button>
-        <sinty-button id="wipe" variant="destructive" pill>Erase…</sinty-button>
-        <sinty-button id="retire" variant="flat" pill>Remove from Management</sinty-button>
-      </div>
-    </sinty-group>
-    <sinty-group id="history" heading="Commands"></sinty-group>
-  </section>
-  <section id="activity-view" hidden>
-    <sinty-group id="activity" heading="Signed Activity Log"></sinty-group>
-  </section>
-</main>
-<sinty-dialog id="add-dialog" heading="Add a Device">
-  <sinty-entry id="add-group" label="Group" placeholder="default"></sinty-entry>
-  <sinty-entry id="add-uses" label="How many devices" value="1" type="number"></sinty-entry>
-  <sinty-button slot="actions" id="add-cancel" pill>Cancel</sinty-button>
-  <sinty-button slot="actions" id="add-create" variant="suggested" pill>Create Code</sinty-button>
+<sinty-app id="app" wide>
+  <sinty-sidebar-row slot="sidebar" data-view="overview" icon="go-home-symbolic" heading="Overview"></sinty-sidebar-row>
+  <sinty-sidebar-row slot="sidebar" data-view="devices" icon="computer-symbolic" heading="Devices"></sinty-sidebar-row>
+  <sinty-sidebar-row slot="sidebar" data-view="requests" icon="mail-inbox-symbolic" heading="Requests"></sinty-sidebar-row>
+  <sinty-sidebar-row slot="sidebar" data-view="groups" icon="network-workgroup-symbolic" heading="Groups and Policies"></sinty-sidebar-row>
+  <sinty-sidebar-row slot="sidebar" data-view="enroll" icon="list-add-symbolic" heading="Enrollment"></sinty-sidebar-row>
+  <sinty-sidebar-separator slot="sidebar"></sinty-sidebar-separator>
+  <sinty-sidebar-row slot="sidebar" data-view="activity" icon="document-open-recent-symbolic" heading="Activity"></sinty-sidebar-row>
+  <div slot="sidebar-footer">
+    <div class="account" id="account" tabindex="0" role="button" aria-haspopup="menu" aria-label="Account">
+      <sinty-avatar id="avatar" size="28"></sinty-avatar>
+      <b id="user"></b>
+      <sinty-icon name="view-more-symbolic"></sinty-icon>
+    </div>
+  </div>
+
+  <span slot="start" class="selcount" id="selcount" hidden></span>
+
+  <sinty-path slot="bubbles" id="path"></sinty-path>
+
+  <sinty-search slot="bubbles" id="search" placeholder="Search" class="std" hidden></sinty-search>
+  <sinty-segmented slot="bubbles" id="filter" bubble value="all" aria-label="Show" class="std" hidden>
+    <button value="all">All</button>
+    <button value="attention">Needs Attention</button>
+    <button value="away">Not Seen</button>
+  </sinty-segmented>
+  <sinty-segmented slot="bubbles" id="who" bubble value="all" aria-label="Show" class="std" hidden>
+    <button value="all">All</button>
+    <button value="people">Administrators</button>
+    <button value="devices">Devices</button>
+  </sinty-segmented>
+  <sinty-bubble slot="bubbles" id="group-filter" icon="network-workgroup-symbolic" text="All Groups" class="std" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" id="refresh" icon="view-refresh-symbolic" label="Refresh" class="std"></sinty-bubble>
+  <sinty-bubble slot="bubbles" id="dev-lock" class="std dev" icon="system-lock-screen-symbolic" label="Lock Screens" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" id="dev-logout" class="std dev" icon="system-log-out-symbolic" label="Sign Everyone Out" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" id="dev-update" class="std dev" icon="software-update-available-symbolic" label="Install Updates" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" id="dev-reboot" class="std dev" icon="system-reboot-symbolic" label="Restart" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" id="dev-more" class="std dev" icon="view-more-symbolic" label="More" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" id="new-code" icon="list-add-symbolic" text="New Code" variant="suggested" class="std" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" id="new-group" icon="list-add-symbolic" text="New Group" class="std" hidden></sinty-bubble>
+
+  <sinty-bubble slot="bubbles" class="sel" data-act="lock" icon="system-lock-screen-symbolic" label="Lock Screens" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" class="sel" data-act="logout" icon="system-log-out-symbolic" label="Sign Everyone Out" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" class="sel" data-act="update" icon="software-update-available-symbolic" label="Install Updates" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" class="sel" data-act="reboot" icon="system-reboot-symbolic" label="Restart" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" class="sel" data-act="sync-policy" icon="emblem-synchronizing-symbolic" label="Apply Policy" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" class="sel" data-act="group" icon="network-workgroup-symbolic" label="Move to Group" hidden></sinty-bubble>
+  <sinty-bubble slot="bubbles" class="sel" data-act="clear" icon="window-close-symbolic" label="Clear Selection" hidden></sinty-bubble>
+
+  <div id="view" class="page"></div>
+  <sinty-status-page id="empty" hidden></sinty-status-page>
+</sinty-app>
+
+<sinty-dialog id="code-dialog" heading="New Enrollment Code">
+  <div class="field">
+    <span class="cap">Group</span>
+    <sinty-entry id="code-group" label="Group" placeholder="default"></sinty-entry>
+    <span class="cap">Number of Devices</span>
+    <sinty-entry id="code-uses" label="Number of Devices" value="1" type="number"></sinty-entry>
+    <span class="cap">Works For</span>
+    <div class="choices">
+      <sinty-segmented id="code-hours" value="24" aria-label="Code works for">
+        <button value="1">1 Hour</button>
+        <button value="24">1 Day</button>
+        <button value="168">7 Days</button>
+        <button value="720">30 Days</button>
+      </sinty-segmented>
+    </div>
+    <small id="code-error" role="alert"></small>
+  </div>
+  <sinty-button slot="actions" id="code-cancel" pill>Cancel</sinty-button>
+  <sinty-button slot="actions" id="code-create" variant="suggested" pill>Create Code</sinty-button>
 </sinty-dialog>
-<sinty-dialog id="code-dialog" heading="Enrollment Code">
-  <p>On the device, run this as an administrator. The code works once per device and expires in 24 hours.</p>
-  <p class="mono" id="code-command"></p>
-  <sinty-button slot="actions" id="code-done" variant="suggested" pill>Done</sinty-button>
+
+<sinty-dialog id="made-dialog" heading="Enroll a Device">
+  <p class="dtext" id="made-text"></p>
+  <div class="codebox"><code id="made-command"></code></div>
+  <p class="dtext">The code is shown only now. You can revoke it from Enrollment.</p>
+  <sinty-button slot="actions" id="made-copy" pill>Copy Command</sinty-button>
+  <sinty-button slot="actions" id="made-done" variant="suggested" pill>Done</sinty-button>
 </sinty-dialog>
-<sinty-dialog id="wipe-dialog" heading="Erase this device?">
-  <p>All data on <b id="wipe-name"></b> becomes unreadable for good and the device restarts. Another administrator must approve before it runs.</p>
-  <sinty-button slot="actions" id="wipe-cancel" pill>Cancel</sinty-button>
-  <sinty-button slot="actions" id="wipe-confirm" variant="destructive" pill>Ask to Erase</sinty-button>
+
+<sinty-dialog id="name-dialog">
+  <div class="field">
+    <span class="cap" id="name-cap">Name</span>
+    <sinty-entry id="name-entry" label="Name"></sinty-entry>
+    <small id="name-error" role="alert"></small>
+  </div>
+  <sinty-button slot="actions" id="name-cancel" pill>Cancel</sinty-button>
+  <sinty-button slot="actions" id="name-ok" variant="suggested" pill>Save</sinty-button>
+</sinty-dialog>
+
+<sinty-dialog id="confirm-dialog">
+  <p class="dtext" id="confirm-text"></p>
+  <sinty-button slot="actions" id="confirm-cancel" pill>Cancel</sinty-button>
+  <sinty-button slot="actions" id="confirm-ok" variant="destructive" pill>Confirm</sinty-button>
 </sinty-dialog>
 </body>
 </html>

@@ -88,6 +88,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /{$}", s.app)
 	mux.HandleFunc("GET /app.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
 		w.Write(appJS)
 	})
 	mux.HandleFunc("POST /agent/v1/enroll", s.enroll)
@@ -100,9 +101,13 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/v1/commands", s.admin(s.commands))
 	mux.HandleFunc("POST /api/v1/commands/{id}/approve", s.admin(s.approve))
 	mux.HandleFunc("POST /api/v1/commands/{id}/cancel", s.admin(s.cancel))
+	mux.HandleFunc("PATCH /api/v1/devices/{id}", s.admin(s.editDevice))
+	mux.HandleFunc("GET /api/v1/tokens", s.admin(s.tokens))
 	mux.HandleFunc("POST /api/v1/tokens", s.admin(s.newToken))
+	mux.HandleFunc("DELETE /api/v1/tokens/{id}", s.admin(s.revokeToken))
 	mux.HandleFunc("GET /api/v1/policies", s.admin(s.policies))
 	mux.HandleFunc("PUT /api/v1/policies/{group}", s.admin(s.setPolicy))
+	mux.HandleFunc("DELETE /api/v1/policies/{group}", s.admin(s.dropPolicy))
 	mux.HandleFunc("GET /api/v1/audit", s.admin(s.audit))
 	if s.cfg.UI != "" {
 		mux.Handle("GET /ui/", http.StripPrefix("/ui/", http.FileServer(http.Dir(s.cfg.UI))))

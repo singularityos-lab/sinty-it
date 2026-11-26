@@ -15,7 +15,10 @@ sinty-it serve -issuer https://id.example.org -client it -secret-file it.secret 
   -accept it-cli,desktop -public https://it.example.org -admins alice,bob
 ```
 
-The web console is served at the public address. It needs the
+The web console is served at the public address. It shows which devices need
+attention, the requests waiting for a second administrator, each device's
+protection and command history, the policy of every group, the active
+enrollment codes and the signed activity log. It needs the
 [sintyui](https://github.com/singularityos-lab/sintyui) files, by default from
 `/usr/share/sintyui`.
 
