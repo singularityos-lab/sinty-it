@@ -728,6 +728,18 @@
     g.append(err, bar);
     view.append(g);
 
+    const known = group('Supported Settings', 'Values are text. Devices apply a change at their next check-in.');
+    for (const [k, v] of [
+      ['screen.lock-after', 'Seconds of inactivity before the screen locks, at most. People can choose a shorter time.'],
+      ['usb.storage', 'allow, read-only or deny for USB drives and memory cards.'],
+      ['signin.notice-title', 'Title of the notice shown before anyone signs in.'],
+      ['signin.notice-text', 'Text of that notice. People accept it to reach the sign-in screen.'],
+      ['updates.defer-days', 'Days to wait after a system update is released before offering it.'],
+      ['updates.window', 'Hours when updates may be downloaded, such as 22:00-04:00.'],
+      ['kiosk.app', 'Application ID to run alone, full screen, such as dev.sinty.browser. Applies at the next sign-in.'],
+    ]) known.append(row(k, v));
+    view.append(known);
+
     const dg = group('Devices');
     if (!members.length) dg.append(row('No devices in this group', 'Enroll a device with a code for this group, or move devices here.'));
     for (const d of members) dg.append(deviceRow(d, [system(d.facts), ago(d.seen)].filter(Boolean).join(', ')));
