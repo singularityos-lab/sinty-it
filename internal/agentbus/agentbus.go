@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/singularityos-lab/libsingularity/src/system/core/go/busname"
+
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
 	"github.com/singularityos-lab/sinty-it/agent"
@@ -172,12 +174,5 @@ func Export(conn *dbus.Conn, s *Service) error {
 	if err := conn.Export(data, Path, "org.freedesktop.DBus.Introspectable"); err != nil {
 		return err
 	}
-	reply, err := conn.RequestName(Name, dbus.NameFlagDoNotQueue)
-	if err != nil {
-		return err
-	}
-	if reply != dbus.RequestNameReplyPrimaryOwner {
-		return errors.New(Name + " is already taken")
-	}
-	return nil
+	return busname.Own(context.Background(), conn, Name)
 }
